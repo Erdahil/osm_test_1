@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 //import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+//import 'dart:math';
 
 
 void main() {
@@ -35,6 +36,7 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
 
   late MapController mapController;
   LatLng? currentPosition;
+  double currentZoom = 15.0;
 
   @override
   void initState()
@@ -52,14 +54,14 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
 
     if (position != null)
     {
-      //final currentZoom = mapController.zoom;
-      mapController.move(position.latLng, 15);
+      mapController.move(position.latLng, currentZoom);
     }
 
   }
 
   //bool isLocationPressed = false;
   bool isTracking = false;
+  bool headingReset = false;
 
   @override
   Widget build(BuildContext context) {
@@ -67,11 +69,16 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
       body:Stack(
         children: [
           FlutterMap(
-            options: const MapOptions(
-                initialCenter: LatLng(52.06516, 19.25248),
+            options: MapOptions(
+                initialCenter: const LatLng(52.06516, 19.25248),
                 initialZoom: 5,
                 minZoom: 0,
                 maxZoom: 19,
+                onPositionChanged: ( position, hasGesture) {
+                  setState(() {
+                    currentZoom = position.zoom;
+                  });
+                },
               ),
             mapController: mapController,
             children: [
@@ -138,7 +145,6 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
               onPressed: () {
                 print("another thing happened");
                 
-
                 if(isTracking)
                 {
                   moveToCurrentPosition();
@@ -146,6 +152,22 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
               },
               child: Icon(
                 isTracking ? Icons.location_on : Icons.location_off,
+              ),
+            )
+            
+          ),
+          Positioned(
+            bottom: 180,
+            right: 20,
+            child: FloatingActionButton(
+              
+              backgroundColor: isTracking ? Colors.blue : Colors.white,
+              onPressed: () {
+                mapController.rotate(0.0);
+              },
+              child: Transform.rotate(
+                angle: 135 * pi/180,
+                child: const Icon(Icons.explore),
               ),
             )
             
