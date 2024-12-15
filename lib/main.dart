@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 //import 'package:geolocator/geolocator.dart';
-//import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -32,90 +33,94 @@ class OSMFlutterMap extends StatefulWidget {
 
 class _OSMFlutterMapState extends State<OSMFlutterMap> {
 
-  final controller = MapController.withUserPosition(
-    trackUserLocation: const UserTrackingOption(
-      enableTracking: true,
-      unFollowUser: false,
-    ),
-    /*customTile: CustomTile(
-        sourceName: "opentopomap",
-        tileExtension: ".png",
-        minZoomLevel: 2,
-        maxZoomLevel: 19,
-        urlsServers: [
-         TileURLs(
-            //"https://tile.opentopomap.org/{z}/{x}/{y}"
-            url: "https://tile.opentopomap.org/",
-            subdomains: [],
-          )
-        ],
-        tileSize: 256,
-      ),*/
-  );
-  //MapController mapController;
-  //LatLng? currentPosition;
+  late MapController mapController;
+  LatLng? currentPosition;
 
   @override
   void initState()
   {
     super.initState();
-    //mapController = MapController();
+    mapController = MapController();
+
+    
+  }
+ 
+  void moveToCurrentPosition() async {
+    final stream = const LocationMarkerDataStreamFactory().fromGeolocatorPositionStream();
+
+    final LocationMarkerPosition? position = await stream.first;
+
+    if (position != null)
+    {
+      //final currentZoom = mapController.zoom;
+      mapController.move(position.latLng, 15);
+    }
+
   }
 
-
+  //bool isLocationPressed = false;
+  bool isTracking = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body:Stack(
         children: [
-          OSMFlutter( 
-            controller:controller,
-            
-            osmOption: OSMOption(
-              
-              userTrackingOption: const UserTrackingOption(
-                enableTracking: true,
-                unFollowUser: false,
+          FlutterMap(
+            options: const MapOptions(
+                initialCenter: LatLng(52.06516, 19.25248),
+                initialZoom: 5,
+                minZoom: 0,
+                maxZoom: 19,
               ),
-              zoomOption: const ZoomOption(
-                initZoom: 8,
-                minZoomLevel: 3,
-                maxZoomLevel: 19,
-                stepZoom: 1.0,
+            mapController: mapController,
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'net.tlserver6y.flutter_map_location_marker.example',
+                maxZoom: 19,
               ),
-              
-              userLocationMarker: UserLocationMaker(
-                personMarker: const MarkerIcon(
-                  icon: Icon(
-                    Icons.location_history_rounded,
-                    color: Colors.red,
-                    size: 48,
-                    ),
-                ),
-                directionArrowMarker: const MarkerIcon(
-                    icon: Icon(
-                        Icons.double_arrow,
-                        size: 48,
-                    ),
+              CurrentLocationLayer(
+                alignPositionOnUpdate: isTracking ? AlignOnUpdate.always : AlignOnUpdate.never,
+                alignDirectionOnUpdate: AlignOnUpdate.never,
+                style: LocationMarkerStyle(
+                  marker: isTracking
+                      ? const DefaultLocationMarker() // Marker włączony
+                      : const SizedBox.shrink(),//isTracking ? const DefaultLocationMarker() : null,
+                markerDirection: MarkerDirection.heading,
+                //positionStream: positionStream,
+                //headingStream: headingStream,
                 ),
               ),
-              roadConfiguration: const RoadOption(
-                roadColor: Colors.yellowAccent,
-              ),
-              
-            ),
-            
+            ],
           ),
           Positioned(
             bottom: 20,
             right: 20,
             child: FloatingActionButton(
+              
+              
+              backgroundColor: isTracking ? Colors.white : Colors.blue,
               onPressed: () {
+                //backgroundColor: Colors.blue;
+                
                 print("thing happened");
+                
+                setState(() {
+                  isTracking = !isTracking;
+
+                });
+
+                if(isTracking)
+                {
+                  moveToCurrentPosition();
+                }
+                //getCurrentLocation();
               },
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.location_searching),
+              //backgroundColor: Colors.white,
+              child: Icon(
+                isTracking ? Icons.location_disabled : Icons.location_searching,
+              ),
             )
             
           )
