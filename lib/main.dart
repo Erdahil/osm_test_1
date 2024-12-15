@@ -80,18 +80,29 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
                 userAgentPackageName: 'net.tlserver6y.flutter_map_location_marker.example',
                 maxZoom: 19,
               ),
-              CurrentLocationLayer(
+              if (isTracking)
+                CurrentLocationLayer(
+                  alignPositionOnUpdate: AlignOnUpdate.once,
+                  alignDirectionOnUpdate: AlignOnUpdate.never,
+                  style: const LocationMarkerStyle(
+                    marker: DefaultLocationMarker(),
+                    markerDirection: MarkerDirection.heading,
+                  ),
+                ),
+              /*CurrentLocationLayer(
                 alignPositionOnUpdate: isTracking ? AlignOnUpdate.always : AlignOnUpdate.never,
                 alignDirectionOnUpdate: AlignOnUpdate.never,
                 style: LocationMarkerStyle(
                   marker: isTracking
                       ? const DefaultLocationMarker() // Marker włączony
                       : const SizedBox.shrink(),//isTracking ? const DefaultLocationMarker() : null,
-                markerDirection: MarkerDirection.heading,
+                markerDirection: isTracking
+                      ? MarkerDirection.heading
+                      : MarkerDirection.
                 //positionStream: positionStream,
                 //headingStream: headingStream,
                 ),
-              ),
+              ),*/
             ],
           ),
           Positioned(
@@ -100,7 +111,7 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
             child: FloatingActionButton(
               
               
-              backgroundColor: isTracking ? Colors.white : Colors.blue,
+              backgroundColor: isTracking ? Colors.blue : Colors.white,
               onPressed: () {
                 //backgroundColor: Colors.blue;
                 
@@ -111,15 +122,30 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
 
                 });
 
+              },
+              child: Icon(
+                isTracking ? Icons.location_searching : Icons.location_disabled,
+              ),
+            )
+            
+          ),
+          Positioned(
+            bottom: 100,
+            right: 20,
+            child: FloatingActionButton(
+              
+              backgroundColor: isTracking ? Colors.blue : Colors.white,
+              onPressed: () {
+                print("another thing happened");
+                
+
                 if(isTracking)
                 {
                   moveToCurrentPosition();
                 }
-                //getCurrentLocation();
               },
-              //backgroundColor: Colors.white,
               child: Icon(
-                isTracking ? Icons.location_disabled : Icons.location_searching,
+                isTracking ? Icons.location_on : Icons.location_off,
               ),
             )
             
@@ -131,115 +157,3 @@ class _OSMFlutterMapState extends State<OSMFlutterMap> {
   }
 }
 
-
-// location with geolocator:
-
-/*
-import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-
-class MyApp extends StatelessWidget {  
-  @override  
-  Widget build(BuildContext context) {  
-    return MaterialApp(  
-      title: 'OSM Flutter Application',  
-      theme: ThemeData(  
-        primarySwatch: Colors.blue,  
-      ),  
-      home: const OSMFlutterMap(),  
-    );  
-  }  
-}  
-
-
-class OSMFlutterMap extends StatefulWidget {
-  const OSMFlutterMap({super.key});
-
-  @override
-  State<OSMFlutterMap> createState() => _OSMFlutterMapState();
-}
-
-class _OSMFlutterMapState extends State<OSMFlutterMap> {
-
-  late MapController mapController;
-  LatLng? currentPosition;
-
-  @override
-  void initState()
-  {
-    super.initState();
-    mapController = MapController();
-  }
-
-  Future<void> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-    return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if(permission == LocationPermission.denied)
-    {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-    return Future.error('Location permissions are permanently denied, we cannot request permissions.');
-    } 
-
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      currentPosition = LatLng(position.latitude, position.longitude);
-      mapController.move(currentPosition!, 15.0);
-    });
-
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body:Stack(
-        children: [
-          FlutterMap(
-            mapController: mapController,
-            options: const MapOptions(),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.app',
-              ),
-            ],
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: () {
-                print("thing happened");
-                getCurrentLocation();
-              },
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.location_searching),
-            )
-            
-          )
-
-        ]
-      ),
-    );
-  }
-}
-*/
